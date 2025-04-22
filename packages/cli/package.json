@@ -1,0 +1,52 @@
+{
+  "name": "blueprint-ui",
+  "version": "0.1.0",
+  "description": "Custom UI library based on shadcn/ui",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "ui",
+    "library",
+    "shadcn",
+    "blueprint"
+  ],
+  "type": "module",
+  "bin": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./registry": {
+      "types": "./dist/registry/index.d.ts",
+      "default": "./dist/registry/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "prompts": "^2.4.2",
+    "chalk": "^5.3.0",
+    "fs-extra": "^11.1.1",
+    "ora": "^7.0.1",
+    "execa": "^8.0.1"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/fs-extra": "^11.0.2",
+    "@types/node": "^22.14.0",
+    "@types/prompts": "^2.4.4",
+    "eslint": "^9.25.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.8.2"
+  }
+}

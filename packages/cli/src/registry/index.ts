@@ -39,7 +39,7 @@ if (fs.existsSync(uiDir)) {
       // Format: // @depends: component1, component2
       const dependsMatch = content.match(/@depends:\s*([^*]+)/);
       const componentDependencies = dependsMatch
-        ? dependsMatch[1]
+        ? (dependsMatch[1] ?? '')
             .split(",")
             .map((d) => d.trim())
             .filter(Boolean)

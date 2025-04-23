@@ -3,7 +3,7 @@ import path from "path";
 import chalk from "chalk";
 import prompts from "prompts";
 import { execa } from "execa";
-import { getComponent, listComponents } from "../registry";
+import { getComponent, listComponents } from "../registry/index.js";
 
 // Set to track components that have been installed to avoid duplicates
 const installedComponents = new Set<string>();

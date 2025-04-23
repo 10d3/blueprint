@@ -2,9 +2,16 @@ import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
 import prompts from "prompts";
+import { execa } from "execa";
 import { getComponent, listComponents } from "../registry";
 
+// Set to track components that have been installed to avoid duplicates
+const installedComponents = new Set<string>();
+
 export async function add(component?: string, destination = ".") {
+  // Reset installed components for each command run
+  installedComponents.clear();
+
   // If no component is specified, show a selection prompt
   if (!component) {
     const availableComponents = listComponents();
@@ -46,15 +53,42 @@ export async function add(component?: string, destination = ".") {
 }
 
 // Helper function to install a single component
-async function installComponent(component: string, destination: string) {
+async function installComponent(
+  component: string,
+  destination: string
+): Promise<boolean> {
+  // Skip if already installed in this session
+  if (installedComponents.has(component)) {
+    return true;
+  }
+
   // Check if component exists
   const componentData = getComponent(component);
 
   if (!componentData) {
+    // Check if it's a shadcn component
+    if (await installShadcnComponent(component)) {
+      installedComponents.add(component);
+      return true;
+    }
+
     console.error(chalk.red(`Component "${component}" not found.`));
     console.log(chalk.yellow("Available components:"));
     console.log(listComponents().join(", "));
     return false;
+  }
+
+  // First, install dependencies if any
+  if (
+    componentData.dependencies.components &&
+    componentData.dependencies.components.length > 0
+  ) {
+    console.log(chalk.blue(`\nInstalling dependencies for ${component}...`));
+
+    for (const dep of componentData.dependencies.components) {
+      // Recursively install component dependencies
+      await installComponent(dep, destination);
+    }
   }
 
   console.log(chalk.blue(`\nAdding ${component}...`));
@@ -77,6 +111,29 @@ async function installComponent(component: string, destination: string) {
     console.log(chalk.green(`Created: ${filePath}`));
   }
 
+  // Mark as installed
+  installedComponents.add(component);
+
   console.log(chalk.green(`✅ Added ${component} component`));
   return true;
+}
+
+// Helper function to install shadcn components
+async function installShadcnComponent(component: string): Promise<boolean> {
+  try {
+    console.log(chalk.blue(`\nInstalling shadcn ${component} component...`));
+
+    // Try to run the shadcn-ui add command
+    await execa("npx", ["shadcn-ui@latest", "add", component], {
+      stdio: "inherit",
+    });
+
+    console.log(chalk.green(`✅ Added shadcn ${component} component`));
+    return true;
+  } catch (error) {
+    console.log(
+      chalk.yellow(`Failed to install shadcn ${component} component.`)
+    );
+    return false;
+  }
 }

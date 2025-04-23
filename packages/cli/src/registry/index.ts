@@ -9,7 +9,12 @@ const __dirname = path.dirname(__filename);
 export interface Component {
   name: string;
   type: "ui" | "custom";
-  dependencies: string[];
+  dependencies: {
+    // Package dependencies (npm packages)
+    packages?: string[];
+    // Component dependencies (other components that need to be installed)
+    components?: string[];
+  };
   files: {
     path: string;
     content: string;
@@ -28,15 +33,28 @@ if (fs.existsSync(uiDir)) {
     if (file.endsWith(".tsx") || file.endsWith(".jsx")) {
       const name = path.basename(file, path.extname(file));
       const filePath = path.join(uiDir, file);
+      const content = fs.readFileSync(filePath, "utf-8");
+
+      // Parse component dependencies from comments
+      // Format: // @depends: component1, component2
+      const dependsMatch = content.match(/@depends:\s*([^*]+)/);
+      const componentDependencies = dependsMatch
+        ? dependsMatch[1]
+            .split(",")
+            .map((d) => d.trim())
+            .filter(Boolean)
+        : [];
 
       components[name] = {
         name,
         type: "custom",
-        dependencies: [],
+        dependencies: {
+          components: componentDependencies,
+        },
         files: [
           {
             path: `components/${name}.tsx`,
-            content: fs.readFileSync(filePath, "utf-8"),
+            content,
           },
         ],
       };
